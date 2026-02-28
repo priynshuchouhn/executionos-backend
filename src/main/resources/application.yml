@@ -2,7 +2,7 @@ spring:
   application:
     name: executions-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/executionos
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -23,4 +23,4 @@ spring:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
 server:
-  port: 8080
+  port: ${PORT:8080}
