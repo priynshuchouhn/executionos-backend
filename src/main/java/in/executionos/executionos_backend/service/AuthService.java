@@ -3,7 +3,6 @@ package in.executionos.executionos_backend.service;
 import in.executionos.executionos_backend.dto.auth.AuthResponse;
 import in.executionos.executionos_backend.dto.auth.LoginRequest;
 import in.executionos.executionos_backend.dto.auth.RegisterRequest;
-import in.executionos.executionos_backend.entity.ActivityType;
 import in.executionos.executionos_backend.entity.User;
 import in.executionos.executionos_backend.entity.Workspace;
 import in.executionos.executionos_backend.entity.WorkspaceMember;
@@ -16,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor

@@ -47,4 +47,6 @@ public interface FocusSessionRepository extends JpaRepository<FocusSession, Long
             LocalDateTime start,
             LocalDateTime end
     );
+
+    List<FocusSession> findAllByStatus(SessionStatus status);
 }

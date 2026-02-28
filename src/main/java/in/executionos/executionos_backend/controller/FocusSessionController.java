@@ -1,12 +1,14 @@
 package in.executionos.executionos_backend.controller;
 
 import in.executionos.executionos_backend.dto.focus.StartSessionRequest;
+import in.executionos.executionos_backend.entity.FocusSession;
 import in.executionos.executionos_backend.service.FocusSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/focus")
@@ -16,28 +18,42 @@ public class FocusSessionController {
     private final FocusSessionService focusSessionService;
 
     @PostMapping("/start")
-    public ResponseEntity<?> start(@RequestBody StartSessionRequest request) {
+    public ResponseEntity<FocusSession> start(@RequestBody StartSessionRequest request) {
         return ResponseEntity.ok(
                 focusSessionService.startSession(request)
         );
     }
 
+    @PostMapping("/pause")
+    public ResponseEntity<FocusSession> pause(@RequestBody Long sessionID) {
+        return ResponseEntity.ok(
+                focusSessionService.pauseSession(sessionID)
+        );
+    }
+
+    @PostMapping("/resume")
+    public ResponseEntity<FocusSession> resume(@RequestBody Long sessionID) {
+        return ResponseEntity.ok(
+                focusSessionService.resumeSession(sessionID)
+        );
+    }
+
     @PostMapping("/complete/{id}")
-    public ResponseEntity<?> complete(@PathVariable Long id) {
+    public ResponseEntity<FocusSession> complete(@PathVariable Long id) {
         return ResponseEntity.ok(
                 focusSessionService.completeSession(id)
         );
     }
 
     @GetMapping("/active")
-    public ResponseEntity<?> active() {
+    public ResponseEntity<FocusSession> active() {
         return ResponseEntity.ok(
                 focusSessionService.getActiveSession()
         );
     }
 
     @GetMapping("/history")
-    public ResponseEntity<?> history() {
+    public ResponseEntity<List<FocusSession>> history() {
         return ResponseEntity.ok(
                 focusSessionService.getMySessions()
         );
