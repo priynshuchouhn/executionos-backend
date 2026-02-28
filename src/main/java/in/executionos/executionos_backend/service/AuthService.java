@@ -3,6 +3,7 @@ package in.executionos.executionos_backend.service;
 import in.executionos.executionos_backend.dto.auth.AuthResponse;
 import in.executionos.executionos_backend.dto.auth.LoginRequest;
 import in.executionos.executionos_backend.dto.auth.RegisterRequest;
+import in.executionos.executionos_backend.entity.ActivityType;
 import in.executionos.executionos_backend.entity.User;
 import in.executionos.executionos_backend.entity.Workspace;
 import in.executionos.executionos_backend.entity.WorkspaceMember;
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -24,6 +27,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final ActivityService activityService;
 
     public AuthResponse register(RegisterRequest request) {
 
@@ -39,6 +43,9 @@ public class AuthService {
         workspace.setName(user.getName() + "'s Workspace");
 
         workspaceRepository.save(workspace);
+
+        activityService.createDefaultActivities(workspace);
+
         WorkspaceMember member = new WorkspaceMember();
         member.setUser(user);
         member.setWorkspace(workspace);

@@ -1,11 +1,14 @@
 package in.executionos.executionos_backend.service;
 
+import in.executionos.executionos_backend.dto.focus.ActivityBreakdownResponse;
+import in.executionos.executionos_backend.dto.focus.LeaderboardResponse;
 import in.executionos.executionos_backend.dto.focus.StartSessionRequest;
 import in.executionos.executionos_backend.entity.ActivityType;
 import in.executionos.executionos_backend.entity.FocusSession;
 import in.executionos.executionos_backend.entity.User;
 import in.executionos.executionos_backend.entity.WorkspaceMember;
 import in.executionos.executionos_backend.enums.SessionStatus;
+import in.executionos.executionos_backend.enums.SessionType;
 import in.executionos.executionos_backend.repository.ActivityTypeRepository;
 import in.executionos.executionos_backend.repository.FocusSessionRepository;
 import in.executionos.executionos_backend.repository.WorkspaceMemberRepository;
@@ -51,6 +54,11 @@ public class FocusSessionService {
         session.setStartTime(LocalDateTime.now());
         session.setSessionType(request.getSessionType());
         session.setStatus(SessionStatus.RUNNING);
+        if (request.getSessionType() == SessionType.POMODORO) {
+            session.setExpectedEndTime(
+                    LocalDateTime.now().plusMinutes(25)
+            );
+        }
 
         return focusSessionRepository.save(session);
     }
@@ -74,7 +82,9 @@ public class FocusSessionService {
                 session.getEndTime()
         ).toMinutes();
 
-        session.setDurationMinutes((int) minutes);
+        long finalDuration = minutes - session.getPausedDurationMinutes();
+
+        session.setDurationMinutes((int) finalDuration);
 
         return focusSessionRepository.save(session);
     }
@@ -93,5 +103,103 @@ public class FocusSessionService {
         User user = SecurityUtil.getCurrentUser();
 
         return focusSessionRepository.findByUser(user);
+    }
+
+    public FocusSession pauseSession(Long sessionId) {
+
+        User user = SecurityUtil.getCurrentUser();
+
+        FocusSession session = focusSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        if (!session.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (session.getStatus() != SessionStatus.RUNNING) {
+            throw new RuntimeException("Session not running");
+        }
+
+        session.setStatus(SessionStatus.PAUSED);
+        session.setPausedAt(LocalDateTime.now());
+
+        return focusSessionRepository.save(session);
+    }
+
+    public FocusSession resumeSession(Long sessionId) {
+
+        User user = SecurityUtil.getCurrentUser();
+
+        FocusSession session = focusSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+
+        if (!session.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        if (session.getStatus() != SessionStatus.PAUSED) {
+            throw new RuntimeException("Session not paused");
+        }
+
+        long pausedMinutes = Duration.between(
+                session.getPausedAt(),
+                LocalDateTime.now()
+        ).toMinutes();
+
+        session.setPausedDurationMinutes(
+                session.getPausedDurationMinutes() + pausedMinutes
+        );
+
+        session.setPausedAt(null);
+        session.setStatus(SessionStatus.RUNNING);
+
+        return focusSessionRepository.save(session);
+    }
+
+    public List<ActivityBreakdownResponse> getActivityAnalytics(LocalDateTime start, LocalDateTime end) {
+
+        User user = SecurityUtil.getCurrentUser();
+
+        WorkspaceMember member = workspaceMemberRepository
+                .findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+        List<Object[]> results = focusSessionRepository
+                .getActivityBreakdown(
+                        user.getId(),
+                        member.getWorkspace().getId(),
+                        start,
+                        end
+                );
+
+        return results.stream()
+                .map(r -> new ActivityBreakdownResponse(
+                        (String) r[0],
+                        (Long) r[1]
+                ))
+                .toList();
+    }
+
+    public List<LeaderboardResponse> getWorkspaceLeaderboard(LocalDateTime start, LocalDateTime end) {
+
+        User user = SecurityUtil.getCurrentUser();
+
+        WorkspaceMember member = workspaceMemberRepository
+                .findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+        List<Object[]> results = focusSessionRepository
+                .getWorkspaceLeaderboard(
+                        member.getWorkspace().getId(),
+                        start,
+                        end
+                );
+
+        return results.stream()
+                .map(r -> new LeaderboardResponse(
+                        (String) r[0],
+                        (Long) r[1]
+                ))
+                .toList();
     }
 }

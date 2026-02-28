@@ -35,6 +35,14 @@ public class FocusSession extends BaseEntity {
 
     private Integer durationMinutes;
 
+    @Column
+    private LocalDateTime pausedAt;
+
+    @Column
+    private Long pausedDurationMinutes = 0L;
+
+    private LocalDateTime expectedEndTime;
+
     @Enumerated(EnumType.STRING)
     private SessionType sessionType;
 

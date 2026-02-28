@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api/focus")
 @RequiredArgsConstructor
@@ -38,6 +40,28 @@ public class FocusSessionController {
     public ResponseEntity<?> history() {
         return ResponseEntity.ok(
                 focusSessionService.getMySessions()
+        );
+    }
+
+    @GetMapping("/analytics/activity")
+    public ResponseEntity<?> activityAnalytics(@RequestParam String start, @RequestParam String end) {
+
+        LocalDateTime startTime = LocalDateTime.parse(start);
+        LocalDateTime endTime = LocalDateTime.parse(end);
+
+        return ResponseEntity.ok(
+                focusSessionService.getActivityAnalytics(startTime, endTime)
+        );
+    }
+
+    @GetMapping("/analytics/leaderboard")
+    public ResponseEntity<?> leaderboard(@RequestParam String start, @RequestParam String end) {
+
+        LocalDateTime startTime = LocalDateTime.parse(start);
+        LocalDateTime endTime = LocalDateTime.parse(end);
+
+        return ResponseEntity.ok(
+                focusSessionService.getWorkspaceLeaderboard(startTime, endTime)
         );
     }
 }

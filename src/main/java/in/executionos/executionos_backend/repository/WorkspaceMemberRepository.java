@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface WorkspaceMemberRepository extends JpaRepository<WorkspaceMember, Long> {
     Optional<WorkspaceMember> findByUserId(Long userId);
+
+    Optional<WorkspaceMember> findByUserIdAndWorkspaceId(Long id, Long workspaceId);
 }
