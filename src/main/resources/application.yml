@@ -2,24 +2,25 @@ spring:
   application:
     name: executions-backend
   datasource:
-    url: ${DB_URL}
+    url: jdbc:postgresql://localhost:5432/executionos
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
-
+      connection-timeout: 60000
+      data-source-properties:
+        connectTimeout: 10
+        socketTimeout: 30
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
   jackson:
     serialization:
       FAIL_ON_EMPTY_BEANS: false
-
 server:
   port: 8080

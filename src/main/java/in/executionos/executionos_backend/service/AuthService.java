@@ -4,8 +4,12 @@ import in.executionos.executionos_backend.dto.auth.AuthResponse;
 import in.executionos.executionos_backend.dto.auth.LoginRequest;
 import in.executionos.executionos_backend.dto.auth.RegisterRequest;
 import in.executionos.executionos_backend.entity.User;
+import in.executionos.executionos_backend.entity.Workspace;
+import in.executionos.executionos_backend.entity.WorkspaceMember;
 import in.executionos.executionos_backend.enums.Role;
 import in.executionos.executionos_backend.repository.UserRepository;
+import in.executionos.executionos_backend.repository.WorkspaceMemberRepository;
+import in.executionos.executionos_backend.repository.WorkspaceRepository;
 import in.executionos.executionos_backend.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,6 +22,8 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final WorkspaceRepository workspaceRepository;
+    private final WorkspaceMemberRepository workspaceMemberRepository;
 
     public AuthResponse register(RegisterRequest request) {
 
@@ -25,13 +31,25 @@ public class AuthService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(Role.MEMBER);
+        user.setRole(Role.OWNER);
 
         userRepository.save(user);
 
-        String token = jwtService.generateToken(user.getEmail());
+        Workspace workspace = new Workspace();
+        workspace.setName(user.getName() + "'s Workspace");
 
-        return new AuthResponse(token);
+        workspaceRepository.save(workspace);
+        WorkspaceMember member = new WorkspaceMember();
+        member.setUser(user);
+        member.setWorkspace(workspace);
+        member.setRole(Role.OWNER);
+
+        workspaceMemberRepository.save(member);
+
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -43,8 +61,9 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
-        return new AuthResponse(token);
+        return new AuthResponse(accessToken, refreshToken);
     }
 }

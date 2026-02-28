@@ -17,7 +17,4 @@ public class Workspace extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
-
-    @OneToMany(mappedBy = "workspace", cascade = CascadeType.ALL)
-    private List<User> users;
 }
